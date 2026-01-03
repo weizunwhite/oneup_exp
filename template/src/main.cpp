@@ -1,4 +1,4 @@
-#include <Arduino.h>
+﻿#include <Arduino.h>
 #include <BluetoothSerial.h>
 
 #include "oneup_config.h"
@@ -13,12 +13,12 @@
 #include "imu.h"
 #include "weight.h"
 
-// ==================== ???? ====================
+// ==================== 全局对象 ====================
 BluetoothSerial SerialBT;
 ButtonManager button;
 WorkMode currentMode = MODE_STANDBY;
 
-// ?????????/?????
+// 简单命令处理（串口/蓝牙共享）
 void handleCommand(char cmd) {
     if (cmd == '\r' || cmd == '\n') return;
 
@@ -59,7 +59,7 @@ void handleCommand(char cmd) {
             break;
     }
 
-    // ?????????
+    // 示教模式下记录动作
     if (currentMode == MODE_TEACHING && path.isRecording() && recordAction) {
         path.recordStep(actionRec);
     }
@@ -76,6 +76,7 @@ void setMode(WorkMode nextMode) {
     motor.stop();
     buzzer.stopBeeping();
 
+    // 按模式切换速度
     if (nextMode == MODE_FOLLOWING) {
         motor.setSpeed(MOTOR_SPEED_FOLLOW_FORWARD, MOTOR_SPEED_FOLLOW_TURN);
     } else if (nextMode == MODE_TEACHING || nextMode == MODE_RETURNING) {
@@ -101,7 +102,7 @@ void setMode(WorkMode nextMode) {
         }
     }
 
-    Serial.print("????: ");
+    Serial.print("切换模式: ");
     Serial.println(MODE_NAMES[currentMode]);
 }
 
@@ -111,7 +112,7 @@ void setup() {
 
     SerialBT.begin("oneup_template");
 
-    // ??????
+    // 初始化各模块
     buzzer.begin();
     ledStrip.begin();
     display.begin();
@@ -122,18 +123,18 @@ void setup() {
     follow.begin();
     path.begin();
 
-    // ????
+    // 按钮管理
     button.begin(BUTTON_PIN, true);
 
     motor.setSpeed(MOTOR_SPEED_FORWARD, MOTOR_SPEED_TURN);
 }
 
 void loop() {
-    // ???????/??/???
+    // 按钮事件（单击/双击/长按）
     button.update();
     ButtonEvent evt = button.getEvent();
     if (evt == BUTTON_EVENT_SINGLE) {
-        // ??->??->??->??->??->??
+        // 待机->背负->跟随->示教->手拉->待机
         if (currentMode == MODE_STANDBY) setMode(MODE_CARRYING);
         else if (currentMode == MODE_CARRYING) setMode(MODE_FOLLOWING);
         else if (currentMode == MODE_FOLLOWING) setMode(MODE_TEACHING);
@@ -145,11 +146,11 @@ void loop() {
         ledStrip.toggle();
     }
 
-    // ????/????
+    // 处理串口/蓝牙命令
     handleInput(Serial);
     handleInput(SerialBT);
 
-    // ?????
+    // 传感器更新
     uwb.update();
     buzzer.update();
     ledStrip.update();
@@ -161,7 +162,7 @@ void loop() {
         lastSensor = millis();
     }
 
-    // ????
+    // 模式逻辑
     if (currentMode == MODE_FOLLOWING) {
         if (uwb.isConnected()) {
             UWBData data = uwb.getData();
@@ -179,7 +180,7 @@ void loop() {
         }
     }
 
-    // OLED ?????????
+    // OLED 刷新（可按需裁剪）
     static unsigned long lastDisplay = 0;
     if (millis() - lastDisplay > 200) {
         if (currentMode == MODE_FOLLOWING) {

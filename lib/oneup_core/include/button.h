@@ -1,10 +1,15 @@
+﻿/**
+ * @file button.h
+ * @brief 按钮管理（单击/双击/长按）
+ */
+
 #ifndef BUTTON_H
 #define BUTTON_H
 
 #include <Arduino.h>
 #include "oneup_config.h"
 
-// ??????
+// 按钮事件类型
 enum ButtonEvent {
     BUTTON_EVENT_NONE = 0,
     BUTTON_EVENT_SINGLE,
@@ -12,7 +17,7 @@ enum ButtonEvent {
     BUTTON_EVENT_LONG
 };
 
-// ??????????/??/??
+// 简单按钮管理器：单击/双击/长按
 class ButtonManager {
 public:
     void begin(uint8_t pin, bool activeLow = true);

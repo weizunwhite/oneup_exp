@@ -1,4 +1,4 @@
-#include "button.h"
+﻿#include "button.h"
 
 void ButtonManager::begin(uint8_t pin, bool activeLow) {
     _pin = pin;
@@ -18,7 +18,7 @@ void ButtonManager::update() {
     int raw = digitalRead(_pin);
     bool isPressed = _activeLow ? (raw == LOW) : (raw == HIGH);
 
-    // ??????????
+    // 去抖：只在稳定后处理
     if (isPressed != _pressed && (now - _lastDebounceTime) > BUTTON_DEBOUNCE_MS) {
         _lastDebounceTime = now;
         _pressed = isPressed;
@@ -34,14 +34,14 @@ void ButtonManager::update() {
         }
     }
 
-    // ????
+    // 长按检测
     if (_pressed && !_longTriggered && (now - _pressTime >= BUTTON_LONG_PRESS_TIME)) {
         _longTriggered = true;
         _clickCount = 0;
         _event = BUTTON_EVENT_LONG;
     }
 
-    // ??????
+    // 双击窗口判断
     if (!_pressed && _clickCount > 0 && (now - _lastReleaseTime > BUTTON_DOUBLE_CLICK_MS)) {
         if (_clickCount == 1) {
             _event = BUTTON_EVENT_SINGLE;
